@@ -38,63 +38,36 @@ var dummy = { dummy: "dummy" };
 var sentinel = { sentinel: "sentinel" };
 var sentinel2 = { sentinel2: "sentinel2" };
 var sentinel3 = { sentinel3: "sentinel3" };
+var other = { other: "other" };
 
+var outerThenableFactory = function (value) {
+    return ;
+};
 
-
-
- var outerThenableFactory = function (value) {
-        return {
-            then: function (onFulfilled) {
-                onFulfilled(value);
-                onFulfilled(other);
-            }
-        };
+var promise = RookiePromise.resolve(dummy).then(function onBasePromiseFulfilled() {
+    return {
+        then: function (resolvePromise) {
+            resolvePromise({
+                then: function (onFulfilled) {
+                    onFulfilled({
+                        then: function (onFulfilled) {
+                            setTimeout(function () {
+                                onFulfilled(sentinel);
+                            }, 0);
+                        }
+                    });
+                    throw other;
+                }
+            });
+        }
     };
+});
+promise.then(function onPromiseFulfilled(value) {
+    console.log(value===sentinel, value, sentinel);
+});
 
-    var innerThenableFactory = function (value) {
-        return {
-            then: function (onFulfilled) {
-                onFulfilled(value);
-                onFulfilled(other);
-            }
-        };
-    };
 
-    function yFactory() {
-        return outerThenableFactory(innerThenableFactory(sentinel));
-    }
 
-    testCallingResolvePromiseFulfillsWith(yFactory, sentinel);
 
-    function testCallingResolvePromiseFulfillsWith(yFactory, stringRepresentation, fulfillmentValue) {
-	    testCallingResolvePromise(yFactory, function (promise, done) {
-	        promise.then(function onPromiseFulfilled(value) {
-	            console.log(value ===fulfillmentValue, value, fulfillmentValue);
-	            
-	        });
-	    });
-	}
 
-function testCallingResolvePromise(yFactory, test) {
-   
-            function xFactory() {
-                return {
-                    then: function (resolvePromise) {
-                        resolvePromise(yFactory());
-                    }
-                };
-            }
 
-            testPromiseResolution(xFactory, test);
-       
-}
-
-function testPromiseResolution(xFactory, test) {
-   
-        var promise = RookiePromise.resolve(dummy).then(function onBasePromiseFulfilled() {
-            return xFactory();
-        });
-
-        test(promise);
-    
-}

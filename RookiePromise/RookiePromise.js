@@ -6,15 +6,12 @@ const STATE_FULFILLED = "fulfilled";
 const STATE_REJECTED = "rejected";
 
 function RookiePromise(fn) {
-
 	this._state = STATE_PENDING;
 	this._value = undefined;
 	this._callbacks = [];
 	this._errorbacks = [];
 
-
 	var executed = false;
-
 	function resolve(promise, x){
 		// 保证resolve、reject接口最多只被执行一次
 		if(executed){
@@ -42,12 +39,28 @@ function RookiePromise(fn) {
 				try{
 					let then = x.then;
 
-					if(typeof then === "function"){
-						then.call(x, (value) => {
-							innerResolve(promise, value);
-						}, (reason) => {
-							this._reject(reason);
-						});
+					if(typeof then === "function"){ //thenable
+						var executed = false;
+						try{
+							then.call(x, (value) => {
+								if(executed){
+									return;
+								}	
+								executed = true;
+								innerResolve(promise, value);
+							}, (reason) => {
+								if(executed){
+									return;
+								}	
+								executed = true;
+								this._reject(reason);
+							});
+						}catch(e){
+							if(executed){
+								return;
+							}
+							throw e;
+						}
 					}else{
 						this._fulfill(x);
 					}
@@ -58,10 +71,9 @@ function RookiePromise(fn) {
 				this._fulfill(x);
 			}
 		};
-
 		innerResolve(promise, x)
-		
 	}
+	
 	function reject(promise, reason){
 		this._reject(reason);
 	}
@@ -96,20 +108,14 @@ RookiePromise.prototype._reject = function(reason) {
 }
 RookiePromise.prototype._notify = function(fns, param) {
 	setTimeout(()=>{
-
 		for(var i=0; i<fns.length; i++){
 			fns[i](param);
 		}
-
 	}, 0);
 }
 
 RookiePromise.prototype.then = function(onFulFilled, onRejected) {
 	return new RookiePromise((resolve, reject)=>{
-		// 1. Both onFulfilled and onRejected are optional arguments:
-		//      i. If onFulfilled is not a function, it must be ignored.
-		// 	   ii. If onRejected is not a function, it must be ignored.
-
 		if(typeof onFulFilled == "function"){
 			this._callbacks.push(function(value){
 				try{
@@ -122,8 +128,6 @@ RookiePromise.prototype.then = function(onFulFilled, onRejected) {
 		}else{
 			this._callbacks.push(resolve); // 值穿透
 		}
-
-
 
 		if(typeof onRejected == "function"){
 			this._errorbacks.push(function(reason){
@@ -141,27 +145,15 @@ RookiePromise.prototype.then = function(onFulFilled, onRejected) {
 
 		if(this._state == STATE_REJECTED){
 			this._notify(this._errorbacks, this._value);
-
 			this._errorbacks = [];
 			this._callbacks = [];
 		}else if(this._state == STATE_FULFILLED){
 			this._notify(this._callbacks, this._value);
-
 			this._errorbacks = [];
 			this._callbacks = [];
 		}
-
 	});
 }
-
-
-
-
-
-
-
-
-
 
 RookiePromise.prototype.catch = function(onRejected) {
     return this.then(null, onRejected);
