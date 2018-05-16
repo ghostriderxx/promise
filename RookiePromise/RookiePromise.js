@@ -28,9 +28,9 @@ function RookiePromise(fn) {
 				this._reject(new TypeError("出错了, promise === x, 会造成死循环!"));
 			}else if(x instanceof RookiePromise){
 				if(x._state == STATE_PENDING){
-					x.then(function(value){
-						innerResolve(value);
-					}, function(reason){
+					x.then((value) => {
+						innerResolve(promise, value);
+					}, (reason) => {
 						this._reject(reason);
 					});
 				}else if(x._state == STATE_FULFILLED){
@@ -43,10 +43,10 @@ function RookiePromise(fn) {
 					let then = x.then;
 
 					if(typeof then === "function"){
-						then.call(x, function(value){
-							innerResolve(value);
-						}, function(reason){
-							this._fulfill(reason);
+						then.call(x, (value) => {
+							innerResolve(promise, value);
+						}, (reason) => {
+							this._reject(reason);
 						});
 					}else{
 						this._fulfill(x);
@@ -196,15 +196,5 @@ RookiePromise.race = function(values) {
         }
     });
 };
-var sentinel = { sentinel: "sentinel" };
-var sentinel2 = { sentinel2: "sentinel2" };
-var sentinel3 = { sentinel3: "sentinel3" };
-var p = RookiePromise.reject(sentinel);
-p.then(null, function () {
-    return sentinel3;
-}).then(function (value) {
-    console.log("3"+(value === sentinel3));
-});
-
 
 module.exports = RookiePromise;
