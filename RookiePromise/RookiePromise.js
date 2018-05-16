@@ -38,7 +38,7 @@ function RookiePromise(fn) {
 				}else if(x._state == STATE_REJECTED){
 					this._reject(x._value);
 				}
-			}else if(typeof x == "function" || typeof x == "object"){
+			}else if(x && (typeof x == "function" || typeof x == "object")){
 				try{
 					let then = x.then;
 
