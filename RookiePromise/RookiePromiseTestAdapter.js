@@ -13,7 +13,6 @@
  *
  * https://github.com/promises-aplus/promises-tests
  */
-
 var RookiePromise = require('./RookiePromise.js');
 
 RookiePromise.resolved = RookiePromise.resolve;
@@ -26,48 +25,6 @@ RookiePromise.deferred = function() {
     });
     return defer;
 }
-
 module.exports = RookiePromise
-
-
-
-
-
-
-var dummy = { dummy: "dummy" };
-var sentinel = { sentinel: "sentinel" };
-var sentinel2 = { sentinel2: "sentinel2" };
-var sentinel3 = { sentinel3: "sentinel3" };
-var other = { other: "other" };
-
-var outerThenableFactory = function (value) {
-    return ;
-};
-
-var promise = RookiePromise.resolve(dummy).then(function onBasePromiseFulfilled() {
-    return {
-        then: function (resolvePromise) {
-            resolvePromise({
-                then: function (onFulfilled) {
-                    onFulfilled({
-                        then: function (onFulfilled) {
-                            setTimeout(function () {
-                                onFulfilled(sentinel);
-                            }, 0);
-                        }
-                    });
-                    throw other;
-                }
-            });
-        }
-    };
-});
-promise.then(function onPromiseFulfilled(value) {
-    console.log(value===sentinel, value, sentinel);
-});
-
-
-
-
 
 
