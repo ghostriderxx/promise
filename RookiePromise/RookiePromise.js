@@ -129,8 +129,9 @@ RookiePromise.prototype.then = function(onFulFilled, onRejected) {
 			this._errorbacks.push(function(reason){
 				try{
 					var value = onRejected(reason);
-					resolve(reason);
+					resolve(value);
 				}catch(ex){
+					console.log(ex);
 					reject(ex);
 				}
 			});
@@ -195,17 +196,15 @@ RookiePromise.race = function(values) {
         }
     });
 };
+var sentinel = { sentinel: "sentinel" };
+var sentinel2 = { sentinel2: "sentinel2" };
+var sentinel3 = { sentinel3: "sentinel3" };
+var p = RookiePromise.reject(sentinel);
+p.then(null, function () {
+    return sentinel3;
+}).then(function (value) {
+    console.log("3"+(value === sentinel3));
+});
 
-var dummy = { dummy: "dummy" };
-function testNonFunction(nonFunction, stringRepresentation) {
-	RookiePromise.reject(dummy).then(function () { }, undefined).then(nonFunction, function () {
-	   console.log(Math.random());
-	});
-}
-testNonFunction(undefined, "`undefined`");
-testNonFunction(null, "`null`");
-testNonFunction(false, "`false`");
-testNonFunction(5, "`5`");
-testNonFunction({}, "an object");
 
 module.exports = RookiePromise;
