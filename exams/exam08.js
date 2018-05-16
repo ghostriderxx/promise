@@ -13,7 +13,7 @@ Promise.reject('b').catch(()=>{
     console.log('b passed');
 })  
 //
-// 解释：p.then(fn)、p.catch(fn)中的fn都是异步执行，上述代码可理解为：
+// 解析：p.then(fn)、p.catch(fn)中的fn都是异步执行，上述代码可理解为：
 //
 //       setTimeout(function(){
 //             setTimeout(function(){
