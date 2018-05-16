@@ -14,16 +14,27 @@
  * https://github.com/promises-aplus/promises-tests
  */
 
-var RookiePromiseTestAdapter = require('./RookiePromise.js');
+var RookiePromise = require('./RookiePromise.js');
 
-RookiePromiseTestAdapter.deferred = function() {
+RookiePromise.deferred = function() {
     let defer = {};
-    new Promise((resolve, reject) => {
-    	defer.promise = this;
+    defer.promise = new RookiePromise((resolve, reject) => {
         defer.resolve = resolve;
         defer.reject = reject;
     });
     return defer;
 }
 
-module.exports = RookiePromiseTestAdapter
+RookiePromise.resolved = function(value) {
+    return new RookiePromise((resolve, reject) => {
+        resolve(value);
+    });
+};
+
+RookiePromise.rejected = function(reason) {
+    return new RookiePromise((resolve, reject) => {
+        reject(reason);
+    });
+};
+
+module.exports = RookiePromise
