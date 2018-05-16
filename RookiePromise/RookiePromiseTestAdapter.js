@@ -25,16 +25,7 @@ RookiePromise.deferred = function() {
     return defer;
 }
 
-RookiePromise.resolved = function(value) {
-    return new RookiePromise((resolve, reject) => {
-        resolve(value);
-    });
-};
-
-RookiePromise.rejected = function(reason) {
-    return new RookiePromise((resolve, reject) => {
-        reject(reason);
-    });
-};
+RookiePromise.resolved = RookiePromise.resolve;
+RookiePromise.rejected = RookiePromise.reject;
 
 module.exports = RookiePromise

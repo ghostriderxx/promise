@@ -135,7 +135,7 @@ RookiePromise.prototype.then = function(onFulFilled, onRejected) {
 				}
 			});
 		}else{
-			this._errorbacks.push(resolve); // 值穿透
+			this._errorbacks.push(reject); // 值穿透
 		}
 
 		if(this._state == STATE_REJECTED){
@@ -195,5 +195,17 @@ RookiePromise.race = function(values) {
         }
     });
 };
+
+var dummy = { dummy: "dummy" };
+function testNonFunction(nonFunction, stringRepresentation) {
+	RookiePromise.reject(dummy).then(function () { }, undefined).then(nonFunction, function () {
+	   console.log(Math.random());
+	});
+}
+testNonFunction(undefined, "`undefined`");
+testNonFunction(null, "`null`");
+testNonFunction(false, "`false`");
+testNonFunction(5, "`5`");
+testNonFunction({}, "an object");
 
 module.exports = RookiePromise;
