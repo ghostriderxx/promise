@@ -19,9 +19,8 @@ function RookiePromise(fn) {
 	 *      taking as input a promise and a value, which we denote as 
 	 *      [[Resolve]](promise, x)
 	 */
-	var executed = false;
+	var executed = false; // 用于保证resolve接口只有第一次被触发时有效；
 	function resolve(promise, x){
-		// 保证resolve、reject接口最多只被执行一次
 		if(executed){
 			return;
 		}
@@ -29,8 +28,14 @@ function RookiePromise(fn) {
 
 		var innerResolve = (promise, x) => {
 			if(promise === x){
+				// 2.3.1. If promise and x refer to the same object, 
+				//        reject promise with a TypeError as the reason.
 				this._reject(new TypeError("出错了, promise === x, 会造成死循环!"));
 			}else if(x instanceof RookiePromise){
+				// 2.3.2. If x is a promise, adopt its state [3.4]:
+				//      2.3.2.1. If x is pending, promise must remain pending until x is fulfilled or rejected.
+				// 	    2.3.2.2. If/when x is fulfilled, fulfill promise with the same value.
+				//      2.3.2.3. If/when x is rejected, reject promise with the same reason.
 				if(x._state == STATE_PENDING){
 					x.then((value) => {
 						innerResolve(promise, value);
@@ -43,38 +48,61 @@ function RookiePromise(fn) {
 					this._reject(x._value);
 				}
 			}else if(x && (typeof x == "function" || typeof x == "object")){
+				// 2.3.3. Otherwise, if x is an object or function,
 				try{
+					// 2.3.3.1. Let then be x.then.
 					let then = x.then;
 
 					if(typeof then === "function"){ //thenable
 						var executed = false;
 						try{
+							// 2.3.3.3. If then is a function, call it with x as this, 
+							//          first argument resolvePromise, and 
+							//          second argument rejectPromise, 
+							//          where:
 							then.call(x, (value) => {
+								// 2.3.3.3.3. If both resolvePromise and rejectPromise are called, 
+								//            or multiple calls to the same argument are made, 
+								//            the first call takes precedence, and any further calls are ignored.
 								if(executed){
 									return;
 								}	
 								executed = true;
+								// 2.3.3.3.1. If/when resolvePromise is called with a value y, 
+								//            run [[Resolve]](promise, y).
 								innerResolve(promise, value);
 							}, (reason) => {
+								// 2.3.3.3.3. If both resolvePromise and rejectPromise are called, 
+								//            or multiple calls to the same argument are made, 
+								//            the first call takes precedence, and any further calls are ignored.
 								if(executed){
 									return;
 								}	
 								executed = true;
+								// 2.3.3.3.2. If/when rejectPromise is called with a reason r, 
+								//            reject promise with r.
 								this._reject(reason);
 							});
 						}catch(e){
+							// 2.3.3.3.4. If calling then throws an exception e,
+							//          2.3.3.3.4.1. If resolvePromise or rejectPromise have been called, ignore it.
 							if(executed){
 								return;
 							}
+							//          2.3.3.3.4.2. Otherwise, reject promise with e as the reason.
 							throw e;
 						}
 					}else{
+						// 2.3.3.4. If then is not a function, fulfill promise with x.
 						this._fulfill(x);
 					}
 				}catch(ex){
+					// 2.3.3.2. If retrieving the property x.then results in a thrown exception e, 
+					//          reject promise with e as the reason.
 					this._reject(ex);
 				}
 			}else{
+				// 2.3.4. If x is not an object or function, fulfill promise with x.
 				this._fulfill(x);
 			}
 		};
