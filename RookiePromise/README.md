@@ -6,14 +6,15 @@
 
 
 ### 安装
-
 ```
 npm install
 ```
 
 
 ### 执行测试
-
 ```
 npx promises-aplus-tests RookiePromiseTestAdapter.js
 ```
+
+
+### 源码分析
