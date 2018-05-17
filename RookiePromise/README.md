@@ -1,6 +1,8 @@
 # RookiePromise #
 
-RookiePromise是符合Promise/A+规范的一个实现，仅用作深入学习、理解 ES6 和 Promise；
+* 符合 Promise/A+ 规范的一个 Promise 实现；
+* 已通过 Promise/A+ 的所有官方测试用例；
+* 用作学习 ES6 和 Promise 特性目的；
 
 
 ### 安装
